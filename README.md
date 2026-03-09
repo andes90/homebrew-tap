@@ -1,18 +1,27 @@
-# Andes90 Tap
+# homebrew-tap
 
-## How do I install these formulae?
+Homebrew tap for [CollabMD](https://github.com/andes90/collabmd).
 
-`brew install andes90/tap/<formula>`
+## Install
 
-Or `brew tap andes90/tap` and then `brew install <formula>`.
-
-Or, in a `brew bundle` `Brewfile`:
-
-```ruby
-tap "andes90/tap"
-brew "<formula>"
+```bash
+brew tap andes90/tap
+brew install collabmd
 ```
 
-## Documentation
+Or in a single command:
 
-`brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).
+```bash
+brew install andes90/tap/collabmd
+```
+
+## Maintenance
+
+`Formula/collabmd.rb` is managed from the main `collabmd` repository by the Homebrew release workflow.
+
+When a GitHub release is published in `andes90/collabmd`, the workflow:
+
+1. Downloads the tagged source tarball
+2. Computes the Homebrew `sha256`
+3. Regenerates `Formula/collabmd.rb`
+4. Commits the update into this tap repository
