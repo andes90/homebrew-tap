@@ -1,13 +1,15 @@
 class Collabmd < Formula
   desc "Collaborative markdown vault server"
   homepage "https://github.com/andes90/collabmd"
-  url "https://github.com/andes90/collabmd/archive/refs/tags/v0.1.2.tar.gz"
-  sha256 "003f766909c1ce40aee857a6bdb07d1aa3479c41ef0d22fa0f3f981d00c21723"
+  url "https://github.com/andes90/collabmd/archive/refs/tags/v0.1.3.tar.gz"
+  sha256 "36dd7b75b847b1c5207c79077897710e735d068bad2906ca7837ce8ee50de7bc"
   license "MIT"
 
   depends_on "node"
 
   def install
+    system "npm", "install", *std_npm_args(prefix: false), "--include=dev"
+    system "npm", "run", "build"
     system "npm", "install", *std_npm_args
     bin.install_symlink libexec/"bin/collabmd"
   end
@@ -30,20 +32,24 @@ class Collabmd < Formula
       err: log_path
     )
 
-    output = nil
+    health_output = nil
 
     Timeout.timeout(15) do
       loop do
-        output = shell_output("curl -fsS http://127.0.0.1:#{port}/health", 2).strip
-        break if output == "ok"
+        health_output = shell_output("curl -fsS http://127.0.0.1:#{port}/health", 2).strip
+        break if health_output == "ok"
       rescue ErrorDuringExecution
         sleep 1
       else
-        sleep 1 if output != "ok"
+        sleep 1 if health_output != "ok"
       end
     end
 
-    assert_equal "ok", output
+    assert_equal "ok", health_output
+
+    asset_response = shell_output("curl -i -fsS http://127.0.0.1:#{port}/assets/css/style.css", 2)
+    assert_match "Content-Type: text/css; charset=utf-8", asset_response
+    assert_match "--color-bg", asset_response
   ensure
     begin
       Process.kill("TERM", pid)
