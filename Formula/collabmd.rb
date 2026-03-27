@@ -1,13 +1,15 @@
 class Collabmd < Formula
   desc "Collaborative markdown vault server"
   homepage "https://github.com/andes90/collabmd"
-  url "https://github.com/andes90/collabmd/archive/refs/tags/v0.1.1.tar.gz"
-  sha256 "6f028668e74f0db4188a8821269cd8c3de956856066fb1cb8ab4b55345203cef"
+  url "https://github.com/andes90/collabmd/archive/refs/tags/v0.1.3.tar.gz"
+  sha256 "36dd7b75b847b1c5207c79077897710e735d068bad2906ca7837ce8ee50de7bc"
   license "MIT"
 
   depends_on "node"
 
   def install
+    system "npm", "install", *std_npm_args(prefix: false), "--include=dev"
+    system "npm", "run", "build"
     system "npm", "install", *std_npm_args
     bin.install_symlink libexec/"bin/collabmd"
   end
@@ -27,29 +29,38 @@ class Collabmd < Formula
       "--host", "127.0.0.1",
       "--port", port.to_s,
       out: log_path,
-      err: log_path,
+      err: log_path
     )
 
-    begin
-      output = nil
+    health_output = nil
 
-      Timeout.timeout(15) do
-        loop do
-          begin
-            output = shell_output("curl -fsS http://127.0.0.1:#{port}/health").strip
-            break if output == "ok"
-          rescue ErrorDuringExecution
-            sleep 1
-          else
-            sleep 1 unless output == "ok"
-          end
-        end
+    Timeout.timeout(15) do
+      loop do
+        health_output = shell_output("curl -fsS http://127.0.0.1:#{port}/health", 2).strip
+        break if health_output == "ok"
+      rescue ErrorDuringExecution
+        sleep 1
+      else
+        sleep 1 if health_output != "ok"
       end
+    end
 
-      assert_equal "ok", output
-    ensure
-      Process.kill("TERM", pid) rescue nil
-      Process.wait(pid) rescue nil
+    assert_equal "ok", health_output
+
+    asset_response = shell_output("curl -i -fsS http://127.0.0.1:#{port}/assets/css/style.css", 2)
+    assert_match "Content-Type: text/css; charset=utf-8", asset_response
+    assert_match "--color-bg", asset_response
+  ensure
+    begin
+      Process.kill("TERM", pid)
+    rescue Errno::ESRCH
+      nil
+    end
+
+    begin
+      Process.wait(pid)
+    rescue Errno::ECHILD
+      nil
     end
   end
 end
