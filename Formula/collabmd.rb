@@ -1,8 +1,8 @@
 class Collabmd < Formula
   desc "Collaborative markdown vault server"
   homepage "https://github.com/andes90/collabmd"
-  url "https://github.com/andes90/collabmd/archive/refs/tags/v0.1.36.tar.gz"
-  sha256 "6cbb68a8520634e10050d0bbccd2b67a21de1d66556a789eb03b950140ccb2b2"
+  url "https://github.com/andes90/collabmd/archive/refs/tags/v0.1.37.tar.gz"
+  sha256 "bb89596ff7588c43e8455707c3f49b27202b05923218abc12e889e7ae917223f"
   license "MIT"
 
   depends_on "node"
